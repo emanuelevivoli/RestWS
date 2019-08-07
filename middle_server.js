@@ -4,17 +4,17 @@ var app = express()
 // const fetch = require("node-fetch");
 const axios = require('axios');
 
-// global.fetch = fetch
-// global.Headers = fetch.Headers;
-
 app.use(cors())
 
+//We are listening on port 3000
 app.listen(3000, () => {
  console.log("Server running on port 3000");
 });
 
+//The end server is listening on localhost:4000
 const Url = 'http://localhost:4000';
 
+//Allowed usernames
 const people = [
     'lele',
     'gyorgi',
@@ -30,10 +30,11 @@ const people = [
 
 dict = {}
 
+//How to respond to a get request on localhost:3000/answer
 app.get("/answer", (req, res, next) => {
     const params = req.query;
-    let appoggio
     if (people.includes(params.user)){
+	//Ignore unknown users
         if (!(params.user in dict)){
             dict[params.user] = {
                 'sentences': [],
@@ -44,12 +45,13 @@ app.get("/answer", (req, res, next) => {
 
         console.log(params.formula)
 
+	//Let s log the formula
         dict[params.user]['sentences'].push(params.formula)
 
-        
+        //Asks for verified answer from the end server
         async function getAnswer(param) {
             try {
-                // Optionally the request above could also be done as
+                //use Axios to make the get request (await in function forces function to be async)
                 const response = await axios.get(Url + '/', {
                     params: {
                         formula: param
@@ -57,13 +59,14 @@ app.get("/answer", (req, res, next) => {
                 });
                 console.log('await response', response.data);
                 return response.data
-
             } catch (error) {
                 console.error(error);
             }
         }
 
+	//Ask for the server s answer
         const response = getAnswer(params.formula).then(data => {
+		//then process it
             real_result = data
 
             correct = params.result == real_result
@@ -75,7 +78,7 @@ app.get("/answer", (req, res, next) => {
             }else{
                 dict[params.user]['score'] = dict[params.user]['score'] * (dict[params.user]['corrects'].length - 1) / dict[params.user]['corrects'].length
             }
-
+		//Define the response to give the middle server
             res.json({
                 'score': dict[params.user]['score'],
                 'model_result': real_result,
@@ -85,39 +88,6 @@ app.get("/answer", (req, res, next) => {
 
         console.log("I'm not waiting")
 
-        // const Data={
-        //     formula: params.formula
-        // }
-
-        // function httpGetAsync(theUrl, params)
-        // {
-        //     var xmlHttp = new XMLHttpRequest();
-        //     xmlHttp.onreadystatechange = function() { 
-        //         return xmlHttp.responseText;
-        //     }
-        //     xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-        //     xmlHttp.send(params);
-        // }
-
-        // app = httpGetAsync(Url, {'params': params.formula})
-
-        // real_result = await appoggio
-
-        // let fetchData = { 
-        //     method: 'POST', 
-        //     body: params.formula //headers: new Headers()
-        // }
-        // real_result = fetch(Url, fetchData)
-        //     .then(data => {
-        //         return String(data)
-        //     })
-        //     .then(res => {
-        //         console.log(res)
-        //     })
-        //     .catch(error => console.log(error))
-        
-        
-
     }else{
         res.json({
             'score': 'none',
@@ -125,6 +95,5 @@ app.get("/answer", (req, res, next) => {
             'user_result': 'none'
         });
     }
-    // console.log(req.query);
    });
 

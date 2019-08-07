@@ -7,22 +7,23 @@ let {PythonShell} = require('python-shell')
 
 app.use(cors())
 
-
+//Open the port 4000 for listening
 app.listen(4000, () => {
  console.log("Server running on port 4000");
 });
 
+//How to treat a get request
 app.get("/", (req, res) => {
+    //generate a new python shell, to execute the nlp.py script with our formula
     let pyshell = new PythonShell('nlp.py', { mode: 'text'});
-    // const formula = req.query.formula;
     console.log(req.query.formula)
-    // console.log(res)
-    
+
     const formula = req.query.formula;
 
     // sends a message to the Python script via stdin
     pyshell.send(formula);
 
+    //Wait for an answer from the script and send it as res (response)
     pyshell.on('message', function (message) {
         // received a message sent from the Python script (a simple "print" statement)
         console.log(message);
@@ -37,18 +38,5 @@ app.get("/", (req, res) => {
         console.log('finished');
         console.log('finished');
     });
-
-    // PythonShell.run('echo_args.py', {
-    //     args: ['hello', 'world']
-    // }, function (err, results) {
-    //     if (err) return done(err);
-    //     results.should.be.an.Array.and.have.lengthOf(2);
-    //     results.should.eql(['hello', 'world']);
-    //     done();
-    // });
-
-    // console.log(req.query);
-    // console.log(res);
-    
    });
 
