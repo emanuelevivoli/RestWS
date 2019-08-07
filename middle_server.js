@@ -37,14 +37,14 @@ app.get("/answer", (req, res, next) => {
         if (!(params.user in dict)){
             dict[params.user] = {
                 'sentences': [],
-                'corrects': [],
+                'posi_nega': [],
                 'score': 0
             }
         }
 
-        console.log(params.formula)
+        console.log(params.sentence)
 
-        dict[params.user]['sentences'].push(params.formula)
+        dict[params.user]['sentences'].push(params.sentence)
 
         
         async function getAnswer(param) {
@@ -52,7 +52,7 @@ app.get("/answer", (req, res, next) => {
                 // Optionally the request above could also be done as
                 const response = await axios.get(Url + '/', {
                     params: {
-                        formula: param
+                        sentence: param
                     }
                 });
                 console.log('await response', response.data);
@@ -63,23 +63,22 @@ app.get("/answer", (req, res, next) => {
             }
         }
 
-        const response = getAnswer(params.formula).then(data => {
-            real_result = data
+        const response = getAnswer(params.sentence).then(data => {
 
-            correct = params.result == real_result
+            data = data == 'True'
         
-            dict[params.user]['corrects'].push(correct)
+            dict[params.user]['posi_nega'].push(data)
+            console.log('final data', Boolean(data))
 
-            if (correct){
-                dict[params.user]['score'] = (dict[params.user]['score'] * (dict[params.user]['corrects'].length - 1) + 1) / dict[params.user]['corrects'].length
+            if (Boolean(data)){
+                dict[params.user]['score'] = (dict[params.user]['score'] * (dict[params.user]['posi_nega'].length - 1) + 1) / dict[params.user]['posi_nega'].length
             }else{
-                dict[params.user]['score'] = dict[params.user]['score'] * (dict[params.user]['corrects'].length - 1) / dict[params.user]['corrects'].length
+                dict[params.user]['score'] = dict[params.user]['score'] * (dict[params.user]['posi_nega'].length - 1) / dict[params.user]['posi_nega'].length
             }
 
             res.json({
                 'score': dict[params.user]['score'],
-                'model_result': real_result,
-                'user_result': params.result
+                'model_result': Boolean(data)
             });
         })
 
@@ -121,8 +120,7 @@ app.get("/answer", (req, res, next) => {
     }else{
         res.json({
             'score': 'none',
-            'model_result': 'none',
-            'user_result': 'none'
+            'model_result': 'none'
         });
     }
     // console.log(req.query);

@@ -15,13 +15,13 @@ app.listen(4000, () => {
 app.get("/", (req, res) => {
     let pyshell = new PythonShell('nlp.py', { mode: 'text'});
     // const formula = req.query.formula;
-    console.log(req.query.formula)
+    console.log(req.query.sentence)
     // console.log(res)
     
-    const formula = req.query.formula;
+    const sentence = req.query.sentence;
 
     // sends a message to the Python script via stdin
-    pyshell.send(formula);
+    pyshell.send(sentence);
 
     pyshell.on('message', function (message) {
         // received a message sent from the Python script (a simple "print" statement)
